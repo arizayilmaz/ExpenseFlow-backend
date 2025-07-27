@@ -1,28 +1,33 @@
 package com.expenseflow.api.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-/**
- * Represents the 'subscriptions' table in the database.
- * Each instance of this class is a row in that table.
- */
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Data;
+
 @Entity
 @Table(name = "subscriptions")
-@Data // Lombok: Automatically generates getters, setters, toString(), etc.
+@Data
 public class Subscription {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Automatically generates a unique ID
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
     private String name;
 
-    // Using BigDecimal for financial values is a best practice to avoid floating-point errors.
     @Column(nullable = false)
     private BigDecimal amount = BigDecimal.ZERO;
 
@@ -37,6 +42,6 @@ public class Subscription {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore // To prevent infinite loops when serializing to JSON
+    @JsonIgnore
     private User user;
 }

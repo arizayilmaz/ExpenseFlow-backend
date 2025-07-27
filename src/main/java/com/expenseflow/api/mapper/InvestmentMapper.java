@@ -1,12 +1,12 @@
 package com.expenseflow.api.mapper;
+import java.util.List;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.expenseflow.api.dto.CreateInvestmentRequest;
 import com.expenseflow.api.dto.InvestmentDto;
 import com.expenseflow.api.entity.Investment;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface InvestmentMapper {

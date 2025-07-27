@@ -1,14 +1,17 @@
 package com.expenseflow.api.dto;
 
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.expenseflow.api.enums.InvestmentType;
+
+import lombok.Data;
+
 @Data
 public class InvestmentDto {
     private UUID id;
-    private String type;
+    private InvestmentType type;
     private String name;
     private BigDecimal amount;
     private BigDecimal initialValue;

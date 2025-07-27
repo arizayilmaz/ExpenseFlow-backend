@@ -1,45 +1,42 @@
 package com.expenseflow.api.repository;
 
-import com.expenseflow.api.entity.Expense;
-import com.expenseflow.api.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Repository interface for Expense entities.
- * Extends JpaRepository to get basic CRUD operations for free.
- * Includes custom methods for user-specific data retrieval.
- */
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.expenseflow.api.dto.MonthlySummaryDto;
+import com.expenseflow.api.entity.Expense;
+import com.expenseflow.api.entity.User;
+
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
-    /**
-     * Finds all expenses belonging to a specific user.
-     * Spring Data JPA automatically creates the query from the method name.
-     * @param user The user entity to search for.
-     * @return A list of expenses for the given user.
-     */
     List<Expense> findByUser(User user);
 
-    /**
-     * Finds a single expense by its ID and ensures it belongs to the specified user.
-     * This is crucial for security in update operations.
-     * @param id The ID of the expense.
-     * @param user The user entity.
-     * @return An Optional containing the expense if found and owned by the user.
-     */
     Optional<Expense> findByIdAndUser(UUID id, User user);
 
-    /**
-     * Checks if an expense with a given ID exists and belongs to the specified user.
-     * More efficient than findByIdAndUser when you only need to check for existence.
-     * @param id The ID of the expense.
-     * @param user The user entity.
-     * @return true if the expense exists and is owned by the user, false otherwise.
-     */
     boolean existsByIdAndUser(UUID id, User user);
+
+    @Query("SELECT FUNCTION('TO_CHAR', e.date, 'YYYY-MM') AS month, SUM(e.amount) AS totalSpending " +
+            "FROM Expense e WHERE e.user = :user AND e.date >= :startDate " +
+            "GROUP BY FUNCTION('TO_CHAR', e.date, 'YYYY-MM') " +
+            "ORDER BY month ASC")
+    List<MonthlySummaryDto> findMonthlyExpenseSummary(@Param("user") User user, @Param("startDate") Instant startDate);
+
+    @Query("SELECT e.category, SUM(e.amount) " +
+            "FROM Expense e WHERE e.user = :user AND e.date >= :startDate " +
+            "GROUP BY e.category")
+    Map<String, BigDecimal> findCategoryBreakdown(@Param("user") User user, @Param("startDate") Instant startDate);
+
+    @Query("SELECT COALESCE(SUM(e.amount), 0) " +
+            "FROM Expense e WHERE e.user = :user AND e.date >= :startDate")
+    BigDecimal findMonthlyTotal(@Param("user") User user, @Param("startDate") Instant startDate);
 }

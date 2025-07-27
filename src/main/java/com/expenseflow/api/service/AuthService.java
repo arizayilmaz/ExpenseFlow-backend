@@ -1,15 +1,17 @@
 package com.expenseflow.api.service;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.expenseflow.api.dto.AuthRequest;
 import com.expenseflow.api.dto.AuthResponse;
 import com.expenseflow.api.dto.RegisterRequest;
 import com.expenseflow.api.entity.User;
 import com.expenseflow.api.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {
-        // DÜZELTME: Kullanıcıyı kaydetmeden önce bu e-postanın zaten var olup olmadığını kontrol et.
         userRepository.findByEmail(request.getEmail())
                 .ifPresent(user -> {
                     throw new IllegalStateException("User with this email already exists.");
@@ -39,19 +40,21 @@ public class AuthService {
         userRepository.save(user);
 
         var jwtToken = jwtService.generateToken(user);
-        return AuthResponse.builder().token(jwtToken).build();
+        return AuthResponse.builder()
+                .message("User registered successfully")
+                .token(jwtToken)
+                .build();
     }
 
-    public AuthResponse login(AuthRequest request) {
+    public AuthResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalStateException("User not found after authentication."));
+        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
         var jwtToken = jwtService.generateToken(user);
-        return AuthResponse.builder().token(jwtToken).build();
+        return AuthResponse.builder()
+                .message("User authenticated successfully")
+                .token(jwtToken)
+                .build();
     }
 }

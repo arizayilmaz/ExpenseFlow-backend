@@ -1,1 +1,1 @@
-V3__create_bank_accounts_table.sql
+ALTER TABLE assets ADD COLUMN iban VARCHAR(255);
